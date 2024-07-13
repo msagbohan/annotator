@@ -8,7 +8,11 @@ import soundfile as sf
 from maad import sound
 from maad.util import power2dB
 from skimage import transform
+import logging
 
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 @st.cache_resource
 def authorize_google_sheets():
@@ -17,7 +21,6 @@ def authorize_google_sheets():
     client = gspread.authorize(creds)
     return client
 
-
 def get_google_sheet_data():
     client = authorize_google_sheets()
     sheet = client.open("XP_final_annotations").worksheet("rec1tes")
@@ -25,12 +28,10 @@ def get_google_sheet_data():
     df = pd.DataFrame(data)
     return df
 
-
 @st.cache_data
 def load_audio_files(folder):
     audio_files = glob.glob(os.path.join(folder, f"*.WAV"))
     return audio_files
-
 
 @st.cache_data
 def plot_spec(file_path, cmap: str):
@@ -49,17 +50,14 @@ def plot_spec(file_path, cmap: str):
     plt.close(fig)
     st.image(spectrogram_path)
 
-
 @st.cache_data
 def spacing():
     st.markdown("<br></br>", unsafe_allow_html=True)
-
 
 def update_google_sheet(client, rec_name, annotations_df):
     sheet = client.open("XP_final_annotations").worksheet(rec_name)
     sheet.clear()  # Clear existing data
     sheet.update([annotations_df.columns.values.tolist()] + annotations_df.values.tolist())
-
 
 def iden():
     # Set up the credentials and client
@@ -76,6 +74,15 @@ def iden():
             base_path = st.text_input("**:red[Please, enter the path to the folders containing all ROIs Clusters]**",
                                       help='(Example: `/path/to/your/folders` or `C:\\Users\\YourName\\AudioFiles`)',
                                       value='/Volumes/Expansion/xprize/bamscape_birdnet/RESULTS_BIRDNET/32kHz_all_CLUSTERS_COMBINED')
+            logger.debug(f"Base path entered: {base_path}")
+
+    # Validate the base path
+    if not os.path.exists(base_path):
+        st.error(f"The path '{base_path}' does not exist. Please enter a valid path.")
+        return
+    if not os.path.isdir(base_path):
+        st.error(f"The path '{base_path}' is not a directory. Please enter a valid directory path.")
+        return
 
     # Loading the CSV files and Google Sheets
     sheet = client.open("XP_final_annotations").worksheet(f"{rec_name}")
@@ -99,7 +106,7 @@ def iden():
     if base_path:
         # Validate the base path
         if os.path.exists(base_path) and os.path.isdir(base_path):
-
+            logger.debug(f"Base path exists: {base_path}")
             col1, col2, col3 = st.columns(3)
             selected_folder = None
             selected_subfolder = None
@@ -122,6 +129,7 @@ def iden():
 
             if selected_folder and selected_subfolder:
                 subfolder_path = os.path.join(base_path, selected_folder, selected_subfolder)
+                logger.debug(f"Subfolder path: {subfolder_path}")
                 for root, dirs, files in os.walk(subfolder_path, topdown=False):
                     targetfolder = files
                     st.write(targetfolder)
@@ -132,7 +140,7 @@ def iden():
                 with form:
                     for i, audio_file in enumerate(audio_files):
                         file_name = os.path.basename(audio_file)
-                        cols = [1.70, .8, 1, 1, 1,1]
+                        cols = [1.70, .8, 1, 1, 1, 1]
                         col1, col2, col3, col4, col5, col6 = st.columns(cols)
                         with col1:
                             with st.spinner('Processing...'):
@@ -148,34 +156,34 @@ def iden():
                             st.markdown('#####')
                             st.markdown(f"<h4 style='text-align: center; color: blue;'>Group</h5>",
                                         unsafe_allow_html=True)
-                            suggested_group = \
-                            annotations_df.loc[annotations_df['filename_ts'] == file_name, 'suggested_class'].values[0]
+                            suggested_group = annotations_df.loc[
+                                annotations_df['filename_ts'] == file_name, 'suggested_class'].values[0]
                             group_input = st.text_input("*(feel free to modify)*", value=suggested_group,
                                                         key=f"group_{file_name}")
                         with col4:
                             st.markdown('#####')
                             st.markdown(f"<h4 style='text-align: center; color: blue;'>Species</h5>",
                                         unsafe_allow_html=True)
-                            suggested_label = \
-                            annotations_df.loc[annotations_df['filename_ts'] == file_name, 'suggested_label'].values[0]
+                            suggested_label = annotations_df.loc[
+                                annotations_df['filename_ts'] == file_name, 'suggested_label'].values[0]
                             scientific_name_input = st.text_input("*(feel free to modify)*", value=suggested_label,
                                                                   key=f"scientific_name_{file_name}")
                         with col5:
                             st.markdown('#####')
                             st.markdown(f"<h4 style='text-align: center; color: blue;'>Validator</h5>",
                                         unsafe_allow_html=True)
-                            validator_name = \
-                            annotations_df.loc[annotations_df['filename_ts'] == file_name, 'validator_name'].values[0]
+                            validator_name = annotations_df.loc[
+                                annotations_df['filename_ts'] == file_name, 'validator_name'].values[0]
                             validator_name_input = st.text_input("*(Please, enter your name)*", value=validator_name,
                                                                  key=f"validator_name_{file_name}")
                         with col6:
                             st.markdown('#####')
                             st.markdown(f"<h4 style='text-align: center; color: blue;'>comment</h5>",
                                         unsafe_allow_html=True)
-                            comment = \
-                            annotations_df.loc[annotations_df['filename_ts'] == file_name, 'comment'].values[0]
+                            comment = annotations_df.loc[
+                                annotations_df['filename_ts'] == file_name, 'comment'].values[0]
                             comment_input = st.text_input("*(tell us something)*", value=comment,
-                                                                 key=f"validator_comment_{file_name}")
+                                                          key=f"validator_comment_{file_name}")
                         annotations.append({
                             'file_name': file_name,
                             'group_input': group_input,
@@ -224,12 +232,12 @@ def iden():
 
                 # Display the DataFrame
                 st.header("Annotated DataFrame")
-                st.write(":orange[Feel free to also access the annotated dataframe on google sheet through this [link](https://docs.google.com/spreadsheets/d/119CGzxLv0kclMMb3SDYYwrULn2WY77OqDrzR6McEYO0/edit?gid=0#gid=0)]")
+                st.write(
+                    ":orange[Feel free to also access the annotated dataframe on google sheet through this [link](https://docs.google.com/spreadsheets/d/119CGzxLv0kclMMb3SDYYwrULn2WY77OqDrzR6McEYO0/edit?gid=0#gid=0)]")
                 df = get_google_sheet_data()
                 df_display = df.astype(str)
                 st.write(df_display)
                 st.markdown('#####')
-
 
 if __name__ == "__main__":
     iden()
