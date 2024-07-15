@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_option_menu import option_menu
 import pyrebase
 
 import annotator
@@ -39,11 +40,11 @@ st.markdown(
 
 # MAIN PAGE HEADER
 
-col1, col2 = st.columns((1, 6))
+col1, col2 = st.columns((1, 10))
 with col1:
     st.image('bioacoustics_logo_large2.gif', width=90)
 with col2:
-    st.header(':grey[Brazilian Team] &mdash;' ' ' ':green[_Bioacoustics_ :bird:]')
+    st.header(':green[Brazilian Team] &mdash;' ' ' ':violet[_Bioacoustics_ :bird:]')
 
 # FIREBASE KEYS AND AUTHENTICATION
 
@@ -104,14 +105,26 @@ if not st.session_state['signedout']:
             st.session_state.useremail = email
             st.session_state.signout = True
             st.session_state.signedout = True
+
         except:
-            st.warning('Login failed, please enter correct email/password')
+            st.warning('Login failed, please enter a valid email/password')
 
 if st.session_state.signout:
-    st.sidebar.header(f':violet[Hello]' + ' ' + st.session_state.useremail + ' ' + '👋🏻')
-    st.sidebar.button('Sign out', on_click=t)
-    annotator.iden()
+    username = st.session_state.useremail
+    username = username.split('@')[0]
+    st.subheader(f':blue[Hello]' + ' ' + f':gray[{username}]' + ' ' + '👋🏻')
+    st.button('Sign out', on_click=t)
+    st.markdown('#####')
+    bio = option_menu(menu_title=None,
+                      options=['Home', 'Database', 'Data analysis', 'Identification'],
+                      icons=['house', 'volume-up', 'soundwave', 'layers'],
+                      default_index=0,
+                      styles={"nav-link": {"font-size": "17px", "text-align": "left", "margin": "0px"},
+                              "nav-link-selected": {"background-color": "orange"}},
+                      orientation='horizontal')
 
+    if bio == 'Identification':
+        test_fin.iden()
 
-
+    st.markdown('#')
 
