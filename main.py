@@ -124,7 +124,7 @@ if st.session_state.signout:
                       orientation='horizontal')
 
     if bio == 'Identification':
-        test_fin.iden()
+        annotator.iden()
 
     st.markdown('#')
 
