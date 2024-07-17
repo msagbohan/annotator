@@ -44,19 +44,29 @@ def load_audio_files(folder):
 def plot_spec(file_path, cmap: str):
     import matplotlib.pyplot as plt
     s, fs = sound.load(file_path)
+    duration = len(s) / fs
+
+    # Adjust figure size based on the duration of the audio file
+    if duration < 1:
+        fig_size = (2, 2)
+    elif duration < 2:
+        fig_size = (2.5, 2)
+    elif duration < 3:
+        fig_size = (4, 2.5)
+    else:
+        fig_size = (5, 3.5)
     Sxx, tn, fn, ext = sound.spectrogram(s, fs, nperseg=1024, noverlap=512, flims=(0, fs // 2))
     Sxx_db = power2dB(Sxx, db_range=70)
     Sxx_db = transform.rescale(Sxx_db, 0.5, anti_aliasing=True, channel_axis=None)
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=fig_size)
     img = ax.imshow(Sxx_db, aspect='auto', extent=ext, origin='lower', interpolation='bilinear', cmap=cmap)
     fig.colorbar(img, ax=ax, format="%+2.0f dB")
-    ax.set(title='Spectrogram', xlabel='Time [s]', ylabel='Frequency [Hz]')
+    ax.set(title='', xlabel='Time [s]', ylabel='Frequency [Hz]')
     plt.tight_layout()
     spectrogram_path = 'temp_spectrogram.png'
     plt.savefig(spectrogram_path)
     plt.close(fig)
     st.image(spectrogram_path)
-
 
 @st.cache_data
 def spacing():
