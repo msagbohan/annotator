@@ -6,7 +6,7 @@ import annotator
 
 # APP PAGE SETTINGS
 
-st.set_page_config(page_title="Bioac-BT", page_icon=":bird:", layout='wide', initial_sidebar_state='auto')
+st.set_page_config(page_title="BAMSCAPE", page_icon=":bird:", layout='wide', initial_sidebar_state='auto')
 
 st.markdown("""
      <style>
