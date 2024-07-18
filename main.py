@@ -95,7 +95,7 @@ if 'signout' not in st.session_state:
     st.session_state['signout'] = False
 
 if not st.session_state['signedout']:
-    st.subheader(':orange[Please, log-in to access the interface]')
+    st.subheader(':orange[Please, login to the interface]')
     email = st.text_input(':blue[E-mail]', placeholder='Enter your e-mail')
     password = st.text_input(':blue[Password]', placeholder='Enter your password', type='password')
 
