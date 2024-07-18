@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import pandas as pd
+import numpy as np
 import gspread
 from google.oauth2 import service_account
 import glob
@@ -266,7 +267,10 @@ def iden():
                                                 unsafe_allow_html=True)
                                     st.markdown('######')
                                     audio_data, audio_sr = sf.read(audio_file)
-                                    st.audio(audio_data, format='audio/wav', sample_rate=audio_sr)
+                                    # Adding a 1-second buffer of silence at the beginning of the audio
+                                    silence = np.zeros(int(1 * audio_sr))
+                                    audio_data_with_silence = np.concatenate([silence, audio_data])
+                                    st.audio(audio_data_with_silence, format='audio/wav', sample_rate=audio_sr)
                                 with col3:
                                     st.markdown('#####')
                                     st.markdown(f"<h4 style='text-align: center; color: blue;'>Group</h5>",
