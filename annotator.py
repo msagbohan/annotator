@@ -37,36 +37,26 @@ def get_google_sheet_data():
 def load_audio_files(folder):
     audio_files = glob.glob(os.path.join(folder, "*.WAV"))
     logger.debug(f"Audio files loaded from {folder}: {audio_files}")
-    return sorted(audio_files)  # Sort audio files alphabetically
+    return audio_files
 
 
-#@st.cache_data
+@st.cache_data
 def plot_spec(file_path, cmap: str):
     import matplotlib.pyplot as plt
     s, fs = sound.load(file_path)
-    duration = len(s) / fs
-
-    # Adjust figure size based on the duration of the audio file
-    if duration < 1:
-        fig_size = (2, 2)
-    elif duration < 2:
-        fig_size = (2.5, 2)
-    elif duration < 3:
-        fig_size = (4, 2.5)
-    else:
-        fig_size = (5, 3.5)
     Sxx, tn, fn, ext = sound.spectrogram(s, fs, nperseg=1024, noverlap=512, flims=(0, fs // 2))
     Sxx_db = power2dB(Sxx, db_range=70)
     Sxx_db = transform.rescale(Sxx_db, 0.5, anti_aliasing=True, channel_axis=None)
-    fig, ax = plt.subplots(figsize=fig_size)
+    fig, ax = plt.subplots()
     img = ax.imshow(Sxx_db, aspect='auto', extent=ext, origin='lower', interpolation='bilinear', cmap=cmap)
     fig.colorbar(img, ax=ax, format="%+2.0f dB")
-    ax.set(title='', xlabel='Time [s]', ylabel='Frequency [Hz]')
+    ax.set(title='Spectrogram', xlabel='Time [s]', ylabel='Frequency [Hz]')
     plt.tight_layout()
     spectrogram_path = 'temp_spectrogram.png'
     plt.savefig(spectrogram_path)
     plt.close(fig)
     st.image(spectrogram_path)
+
 
 @st.cache_data
 def spacing():
@@ -81,13 +71,12 @@ def update_google_sheet(client, rec_name, annotations_df):
 
 def iden():
     # Set up the credentials and client
-    st.markdown('#####')
-    st.header("Bamscape ROIS Clusters Annotator")
+    st.header("ROIS Clusters Annotator")
     client = authorize_google_sheets()
 
     # Select a recorder to analyze
-    rec_name = st.selectbox('**:violet[Please, select a recorder to analyze]**',
-                            options=['rec3dmu', 'rec4dmu', 'rec6dmu', 'rec7dmu'])
+    rec_name = st.selectbox('**:red[Please, select a recorder to analyze]**',
+                            options=['rec1tes', 'rec2dmu', 'rec3dmu', 'rec4dmu', 'rec5dmu', 'rec6dmu', 'rec7dmu'])
 
     if rec_name:
         # Load the CSV files and Google Sheets
@@ -106,18 +95,17 @@ def iden():
         if 'folders' not in st.session_state:
             folders = unannotated_df['cluster_number'].astype(str).unique()
             st.session_state.folders = {
-                folder: unannotated_df[unannotated_df['cluster_number'] == folder]['period'].astype(
+                folder: unannotated_df[unannotated_df['cluster_number'] == int(folder)]['period'].astype(
                     str).unique().tolist() for folder in folders}
 
         # Allow the user to upload a ZIP file
-        uploaded_files = st.file_uploader(f"**:violet[Upload a ZIP file containing Clusters folders of {rec_name}]**", type=["zip"], accept_multiple_files=True)
+        uploaded_file = st.file_uploader(f"**:red[Upload a ZIP file containing Clusters folders of :blue[{rec_name}]]**", type=["zip"])
 
-        if uploaded_files:
+        if uploaded_file:
             # Create a temporary directory to extract the ZIP file
             with tempfile.TemporaryDirectory() as tmpdir:
-                for uploaded_file in uploaded_files:
-                    with zipfile.ZipFile(uploaded_file, 'r') as zip_ref:
-                        zip_ref.extractall(tmpdir)
+                with zipfile.ZipFile(uploaded_file, 'r') as zip_ref:
+                    zip_ref.extractall(tmpdir)
 
                 st.success(f"Clusters folders extracted successfully")
 
@@ -136,19 +124,20 @@ def iden():
                 with st.container():
                     with col1:
                         if st.session_state.folders:
-                            selected_folder = st.selectbox("**:violet[Select a cluster folder to analyze]**",
+                            selected_folder = st.selectbox("**:red[Select a cluster folder to analyze]**",
                                                            list(st.session_state.folders.keys()))
                             logger.debug(f"Selected folder: {selected_folder}")
                         else:
-                            st.success("Congratulations, all the clusters have been annotated! Please select another recorder to annotate.")
+                            st.success(
+                                "Congratulations, all the clusters have been annotated! Please select another recorder to annotate.")
                     with col2:
                         if selected_folder:
                             subfolders = st.session_state.folders[selected_folder]
                             if subfolders:
-                                selected_subfolder = st.selectbox("**:violet[Select a subfolder to analyze]**", subfolders)
+                                selected_subfolder = st.selectbox("**:red[Select a subfolder to analyze]**", subfolders)
                                 logger.debug(f"Selected subfolder: {selected_subfolder}")
                     with col3:
-                        selected_cmap = st.selectbox("**:violet[Choose a colormap to display spectrograms]**",
+                        selected_cmap = st.selectbox("**:red[Choose a colormap to display spectrograms]**",
                                                      options=['jet', 'Greys', 'plasma', 'viridis', 'inferno'])
 
                 if selected_folder and selected_subfolder:
@@ -170,7 +159,7 @@ def iden():
                         with form:
                             for i, audio_file in enumerate(audio_files):
                                 file_name = os.path.basename(audio_file)
-                                cols = [1.70, 1, 1, 1, 1, 1]
+                                cols = [1.70, .8, 1, 1, 1, 1]
                                 col1, col2, col3, col4, col5, col6 = st.columns(cols)
                                 with col1:
                                     with st.spinner('Processing...'):
@@ -190,7 +179,7 @@ def iden():
                                                 unsafe_allow_html=True)
                                     suggested_group = annotations_df.loc[
                                         annotations_df['filename_ts'] == file_name, 'suggested_class'].values[0]
-                                    group_input = st.text_input(f"*(modify the text if needed)*", value=suggested_group,
+                                    group_input = st.text_input("*(feel free to modify)*", value=suggested_group,
                                                                 key=f"group_{file_name}")
                                 with col4:
                                     st.markdown('#####')
@@ -198,7 +187,7 @@ def iden():
                                                 unsafe_allow_html=True)
                                     suggested_label = annotations_df.loc[
                                         annotations_df['filename_ts'] == file_name, 'suggested_label'].values[0]
-                                    scientific_name_input = st.text_input("*(modify the text if needed)*",
+                                    scientific_name_input = st.text_input("*(feel free to modify)*",
                                                                           value=suggested_label,
                                                                           key=f"scientific_name_{file_name}")
                                 with col5:
@@ -207,7 +196,7 @@ def iden():
                                                 unsafe_allow_html=True)
                                     validator_name = annotations_df.loc[
                                         annotations_df['filename_ts'] == file_name, 'validator_name'].values[0]
-                                    validator_name_input = st.text_input("*(please, enter your name)*",
+                                    validator_name_input = st.text_input("*(Please, enter your name)*",
                                                                          value=validator_name,
                                                                          key=f"validator_name_{file_name}")
                                 with col6:
@@ -216,7 +205,7 @@ def iden():
                                                 unsafe_allow_html=True)
                                     comment = annotations_df.loc[
                                         annotations_df['filename_ts'] == file_name, 'comment'].values[0]
-                                    comment_input = st.text_input("*(feel free to tell something)*", value=comment,
+                                    comment_input = st.text_input("*(tell us something)*", value=comment,
                                                                   key=f"validator_comment_{file_name}")
                                 annotations.append({
                                     'file_name': file_name,
@@ -271,7 +260,7 @@ def iden():
                     # Display the DataFrame
                     st.header("Annotated DataFrame")
                     st.write(
-                        ":orange[Feel free to also access the dataframe on google sheet [link](https://docs.google.com/spreadsheets/d/119CGzxLv0kclMMb3SDYYwrULn2WY77OqDrzR6McEYO0/edit?gid=0#gid=0)]")
+                        ":orange[Feel free to also access the annotated dataframe on google sheet through this [link](https://docs.google.com/spreadsheets/d/119CGzxLv0kclMMb3SDYYwrULn2WY77OqDrzR6McEYO0/edit?gid=0#gid=0)]")
                     df = get_google_sheet_data()
                     df_display = df.astype(str)
                     st.write(df_display)
