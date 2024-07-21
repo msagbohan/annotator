@@ -87,7 +87,7 @@ def iden():
 
     # Select a recorder to analyze
     rec_name = st.selectbox('**:violet[Please, select a recorder to analyze]**',
-                            options=['rec1tes', 'rec2dmu', 'rec3dmu', 'rec4dmu', 'rec5dmu', 'rec6dmu', 'rec7dmu'])
+                            options=['rec3dmu', 'rec4dmu', 'rec6dmu', 'rec7dmu'])
 
     if rec_name:
         # Load the CSV files and Google Sheets
@@ -106,7 +106,7 @@ def iden():
         if 'folders' not in st.session_state:
             folders = unannotated_df['cluster_number'].astype(str).unique()
             st.session_state.folders = {
-                folder: unannotated_df[unannotated_df['cluster_number'] == int(float(folder))]['period'].astype(
+                folder: unannotated_df[unannotated_df['cluster_number'] == folder]['period'].astype(
                     str).unique().tolist() for folder in folders}
 
         # Allow the user to upload a ZIP file
