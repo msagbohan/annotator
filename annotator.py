@@ -95,8 +95,8 @@ def iden():
         if 'folders' not in st.session_state:
             folders = unannotated_df['cluster_number'].astype(str).unique()
             st.session_state.folders = {
-                folder: unannotated_df[unannotated_df['cluster_number'] == int(folder)]['period'].astype(
-                    str).unique().tolist() for folder in folders}
+                folder: unannotated_df[unannotated_df['cluster_number'].astype(str) == folder]['period'].astype(
+                    str).unique().tolist() for folder in folders if folder.strip() !=''}
 
         # Allow the user to upload a ZIP file
         uploaded_file = st.file_uploader(f"**:red[Upload a ZIP file containing Clusters folders of :blue[{rec_name}]]**", type=["zip"])
