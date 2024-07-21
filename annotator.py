@@ -156,16 +156,6 @@ def iden():
                                         (annotations_df['validated_specie'] == 0) |
                                         (annotations_df['validator_name'] == 0)]
 
-        # Load the initial state from the Google Sheet
-        if 'folders' not in st.session_state:
-            folders = unannotated_df['cluster_number'].astype(str).unique()
-            st.session_state.folders = {
-                folder: unannotated_df[unannotated_df['cluster_number'] == int(folder)]['period'].astype(
-                    str).unique().tolist() for folder in folders}
-
-        # Get current annotation status
-        annotation_status = get_annotation_status()
-
         # Check if user has previously uploaded files for the selected rec_name and store in session state
         if 'uploaded_files' not in st.session_state:
             st.session_state.uploaded_files = {}
