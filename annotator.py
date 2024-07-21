@@ -1,7 +1,6 @@
 import streamlit as st
 import os
 import pandas as pd
-import numpy as np
 import gspread
 from google.oauth2 import service_account
 import glob
@@ -12,8 +11,6 @@ from skimage import transform
 import logging
 import zipfile
 import tempfile
-from datetime import datetime
-import matplotlib.pyplot as plt
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -71,8 +68,6 @@ def plot_spec(file_path, cmap: str):
     plt.close(fig)
     st.image(spectrogram_path)
 
-
-
 @st.cache_data
 def spacing():
     st.markdown("<br></br>", unsafe_allow_html=True)
@@ -84,31 +79,15 @@ def update_google_sheet(client, rec_name, annotations_df):
     sheet.update([annotations_df.columns.values.tolist()] + annotations_df.values.tolist())
 
 
-def plot_pie_chart(annotations_df):
-    total_clusters = len(annotations_df['cluster_number'].unique())
-    annotated_clusters = annotations_df[annotations_df['validated_class'] != 0]['cluster_number'].nunique()
-    remaining_clusters = total_clusters - annotated_clusters
-    labels = 'Validated Clusters', 'Pending Validations'
-    sizes = [annotated_clusters, remaining_clusters]
-    colors = ['#1fd655', '#ff9999']
-    explode = (0.1, 0)  # explode the 1st slice
-    fig1, ax1 = plt.subplots(figsize=(6, 4))
-    wedges, texts, autotexts = ax1.pie(sizes, explode=explode, labels=labels, colors=colors, autopct='%1.1f%%',
-            shadow=True, startangle=90)
-    plt.setp(autotexts, size=13, weight="bold")
-    ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-    st.pyplot(fig1)
-
-
 def iden():
     # Set up the credentials and client
     st.markdown('#####')
-    st.header("Bamscape Clusters Annotator")
+    st.header("Bamscape ROIS Clusters Annotator")
     client = authorize_google_sheets()
 
     # Select a recorder to analyze
     rec_name = st.selectbox('**:violet[Please, select a recorder to analyze]**',
-                            options=['rec3dmu', 'rec4dmu', 'rec6dmu', 'rec7dmu'])
+                            options=['rec1tes', 'rec2dmu', 'rec3dmu', 'rec4dmu', 'rec5dmu', 'rec6dmu', 'rec7dmu'])
 
     if rec_name:
         # Load the CSV files and Google Sheets
@@ -118,15 +97,10 @@ def iden():
         annotations_df = st.session_state.final_annotations
         csv_file = f'{rec_name}_all_CLUSTERS_COMBINED.csv'
 
-        # Display the pie chart
-        plot_pie_chart(annotations_df)
-
         # Filter out the annotated rows based on specific columns
         unannotated_df = annotations_df[(annotations_df['validated_class'] == 0) |
                                         (annotations_df['validated_specie'] == 0) |
                                         (annotations_df['validator_name'] == 0)]
-
-       
 
         # Load the initial state from the Google Sheet
         if 'folders' not in st.session_state:
