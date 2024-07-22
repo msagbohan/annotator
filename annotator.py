@@ -30,7 +30,7 @@ def authorize_google_sheets():
 
 def get_google_sheet_data(rec_name):
     client = authorize_google_sheets()
-    sheet = client.open("XP_final_annotations").worksheet("rec_name")
+    sheet = client.open("XP_final_annotations").worksheet(rec_name)
     data = sheet.get_all_records()
     df = pd.DataFrame(data)
     return df
