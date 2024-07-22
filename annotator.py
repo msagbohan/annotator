@@ -138,7 +138,7 @@ def iden():
 
     # Select a recorder to analyze
     rec_name = st.selectbox('**:violet[Please, select a recorder to analyze]**',
-                            options=['rec3dmu', 'rec4dmu', 'rec6dmu', 'rec7dmu'])
+                            options=['rec3dmu', 'rec4dmu', 'rec7dmu', 'rec1dmu', 'rec3dmu_v2', 'rec4dmu_v2', 'rec6dmu'])
 
     if rec_name:
         # Load the CSV files and Google Sheets
