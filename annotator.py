@@ -28,9 +28,9 @@ def authorize_google_sheets():
     return client
 
 
-def get_google_sheet_data():
+def get_google_sheet_data(rec_name):
     client = authorize_google_sheets()
-    sheet = client.open("XP_final_annotations").worksheet("rec1tes")
+    sheet = client.open("XP_final_annotations").worksheet("rec_name")
     data = sheet.get_all_records()
     df = pd.DataFrame(data)
     return df
@@ -361,7 +361,7 @@ def iden():
                     # Display the DataFrame
                     st.header("Annotated DataFrame")
                     st.write(":orange[Feel free to access the dataframe on google sheet through this [link](https://docs.google.com/spreadsheets/d/119CGzxLv0kclMMb3SDYYwrULn2WY77OqDrzR6McEYO0/edit?gid=0#gid=0)]")
-                    df = get_google_sheet_data()
+                    df = get_google_sheet_data(rec_name)
                     df_display = df.astype(str)
                     st.write(df_display)
                     st.markdown('#####')
