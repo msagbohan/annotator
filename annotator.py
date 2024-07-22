@@ -356,15 +356,15 @@ def iden():
                     else:
                         st.error("No audio files found in the selected subfolder.")
 
-        spacing()
-    
-        # Display the DataFrame
-        st.header("Annotated DataFrame")
-        st.write(":orange[Feel free to access the dataframe on google sheet through this [link](https://docs.google.com/spreadsheets/d/119CGzxLv0kclMMb3SDYYwrULn2WY77OqDrzR6McEYO0/edit?gid=0#gid=0)]")
-        df = get_google_sheet_data(rec_name)
-        df_display = df.astype(str)
-        st.write(df_display)
-        st.markdown('#####')
+                    spacing()
+                
+                    # Display the DataFrame
+                    st.header("Annotated DataFrame")
+                    st.write(":orange[Feel free to access the dataframe on google sheet through this [link](https://docs.google.com/spreadsheets/d/119CGzxLv0kclMMb3SDYYwrULn2WY77OqDrzR6McEYO0/edit?gid=0#gid=0)]")
+                    df = get_google_sheet_data(rec_name)
+                    df_display = df.astype(str)
+                    st.write(df_display)
+                    st.markdown('#####')
 
     if __name__ == "__main__":
         iden()
