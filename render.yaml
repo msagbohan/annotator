@@ -1,0 +1,17 @@
+# Exported from Render on 2024-11-04T10:10:39Z
+services:
+- type: web
+  name: soundscape-annotator
+  runtime: python
+  repo: https://github.com/msagbohan/annotator
+  plan: starter
+  envVars:
+  - key: secrets.toml
+    sync: false
+  - key: PYTHON_VERSION
+    sync: false
+  region: oregon
+  buildCommand: mkdir .streamlit; cp /etc/secrets/secrets.toml ./.streamlit/; pip
+    install --upgrade pip && pip install -r requirements.txt
+  startCommand: streamlit run main.py
+version: "1"
